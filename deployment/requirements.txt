@@ -1,0 +1,33 @@
+# Deployment Requirements – HF Space
+
+# ===== PyTorch (CUDA) =====
+--extra-index-url https://download.pytorch.org/whl/cu130
+torch
+torchvision
+
+# ===== Core Diffusion =====
+diffusers>=0.30.0
+transformers>=4.40.0
+accelerate
+safetensors
+peft
+
+# ===== IP-Adapter (reference image style) =====
+ip-adapter
+
+# ===== Upscaling =====
+realesrgan
+basicsr
+gfpgan
+
+# ===== Image Processing =====
+Pillow
+opencv-python-headless
+numpy
+
+# ===== Web UI =====
+gradio>=4.40.0
+spaces
+
+# ===== LLM API =====
+requests

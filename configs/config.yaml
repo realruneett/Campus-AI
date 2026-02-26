@@ -1,0 +1,637 @@
+# ============================================================================
+# CampusGen AI - Master Configuration File
+# All scripts reference this file - NO HARDCODING ALLOWED
+# ============================================================================
+
+project:
+  name: "CampusGen AI"
+  version: "1.0.0"
+  creator: "M Runeet Kumar"
+  location: "Ashta/Indore, MP, India"
+  start_date: "2026-02-13"
+  seed: 42 # Master random seed for reproducibility
+
+# ============================================================================
+# HARDWARE CONFIGURATION
+# ============================================================================
+hardware:
+  gpu:
+    name: "RTX 5070 Ti"
+    vram_gb: 12
+    cuda_version: "13.1"
+    compute_capability: "12.0" # SM120 (Blackwell)
+  system:
+    ram_gb: 32
+    cpu_cores: 24
+    storage_gb: 500
+
+# ============================================================================
+# DIRECTORY STRUCTURE
+# ============================================================================
+paths:
+  root: "."
+  data:
+    root: "data"
+    raw: "data/raw"
+    processed: "data/processed"
+    curated: "data/curated"
+    train: "data/train"
+    val: "data/val"
+    test: "data/test"
+    tuning: "data/tuning"
+    images: "data/images"
+    videos: "data/videos"
+    audio: "data/audio"
+  models:
+    root: "models"
+    llama:
+      base: "models/llama/base"
+      lora: "models/llama/lora"
+      merged: "models/llama/merged"
+      checkpoints: "models/llama/checkpoints"
+    sdxl:
+      base: "models/sdxl/base"
+      lora: "models/sdxl/lora"
+      checkpoints: "models/sdxl/checkpoints"
+    cogvideo:
+      base: "models/cogvideo/base"
+      lora: "models/cogvideo/lora"
+    voice:
+      base: "models/voice"
+  outputs:
+    root: "outputs"
+    images: "outputs/images"
+    videos: "outputs/videos"
+    combined: "outputs/combined"
+    gallery: "outputs/gallery"
+    webapp: "outputs/webapp"
+    test: "outputs/test"
+  logs:
+    root: "logs"
+    training: "logs/training"
+    inference: "logs/inference"
+    tensorboard: "logs/tensorboard"
+  configs:
+    root: "configs"
+
+# ============================================================================
+# MODEL CONFIGURATIONS
+# ============================================================================
+models:
+  llama:
+    # Model source
+    repo_id: "unsloth/Meta-Llama-3.1-70B-Instruct-bnb-4bit"
+
+    # Model parameters
+    max_seq_length: 2048
+    context_length: 8192
+    dtype: "bfloat16"
+    load_in_4bit: true
+    load_in_8bit: false
+
+    # Flash attention
+    use_flash_attention: true
+    attn_implementation: "flash_attention_2"
+
+    # Memory optimization
+    gradient_checkpointing: true
+    use_cache: false
+
+    # Inference parameters
+    temperature: 0.7
+    top_p: 0.9
+    top_k: 50
+    repetition_penalty: 1.1
+    max_new_tokens: 256
+    do_sample: true
+
+  sdxl:
+    # Model source
+    repo_id: "stabilityai/stable-diffusion-xl-base-1.0"
+
+    # Model parameters
+    dtype: "bfloat16"
+    variant: "fp16" # or "fp32"
+
+    # Generation parameters
+    height: 1024
+    width: 1024
+    num_inference_steps: 28
+    guidance_scale: 5.0
+    num_images_per_prompt: 1
+
+    # Memory optimization
+    enable_cpu_offload: false
+    enable_attention_slicing: false
+    enable_vae_slicing: false
+    enable_vae_tiling: false
+
+  cogvideo:
+    repo_id: "THUDM/CogVideoX-5b"
+    enabled: false
+    num_frames: 49
+    fps: 8
+    guidance_scale: 6.0
+    num_inference_steps: 50
+
+  voice:
+    repo_id: "fishaudio/fish-speech-1.5"
+    enabled: false
+    language: "hindi-english-mix"
+    speed: 1.0
+    pitch: 0
+
+# ============================================================================
+# DATASET CONFIGURATION
+# ============================================================================
+dataset:
+  # Data splits
+  splits:
+    train: 0.8
+    val: 0.1
+    test: 0.1
+
+  # Target samples
+  target_samples: 1000
+  min_samples: 100
+  max_samples: 10000
+
+  # Image specifications
+  image:
+    size: [1024, 1024]
+    format: "PNG"
+    quality: 95
+    channels: 3
+
+  # Quality thresholds
+  quality:
+    min_score: 0.7
+    min_clip_score: 0.25
+    max_toxicity: 0.3
+
+  # Stratification
+  stratify_by: "category"
+  balance_classes: true
+
+  # Categories
+  categories:
+    - "diwali"
+    - "holi"
+    - "navratri"
+    - "eid"
+    - "ganesh"
+    - "tech_fest"
+    - "cultural_fest"
+    - "sports"
+    - "workshop"
+    - "general"
+
+  # Prompt generation
+  prompts:
+    cities:
+      - "Indore"
+      - "Mumbai"
+      - "Delhi"
+      - "Bangalore"
+      - "Hyderabad"
+      - "Pune"
+      - "Chennai"
+      - "Kolkata"
+      - "Ahmedabad"
+      - "Jaipur"
+    colleges:
+      - "IIT"
+      - "NIT"
+      - "IIIT"
+      - "Engineering College"
+      - "University"
+      - "Technical Institute"
+    states:
+      - "Madhya Pradesh"
+      - "Maharashtra"
+      - "Karnataka"
+      - "Tamil Nadu"
+      - "Gujarat"
+
+# ============================================================================
+# API KEYS (used by download_dataset.py)
+# ============================================================================
+api_keys:
+  kaggle:
+    username: "runeetkumarmallarpu"
+    key: "KGAT_2cb1f3383897a1e34688a306c90cab32"
+  unsplash:
+    application_id: "873846"
+    access_key: "JkGKkdqmNPl9DVyTsESIq8FK3PvMP7VaVMelGYXqP5o"
+    secret_key: "-KeP6wUb8OHqT4Uq0uEAuvFEYc_6ol8-fR_E5rUEF6E"
+  pexels:
+    api_key: "WDWkMok7dehZeeigBo34hrpHybhzPuYHvZzbq3NTuPFwVUfc3MPTUz3q"
+
+# ============================================================================
+# SCRAPING CONFIGURATION
+# ============================================================================
+scraping:
+  pinterest:
+    max_images_per_query: 200
+    scroll_pause_seconds: 2.0
+    download_timeout: 15
+    min_resolution: 512
+    headless: true
+
+# ============================================================================
+# DEPLOYMENT CONFIGURATION - HF / GROQ
+# ============================================================================
+deployment_hf:
+  hf_username: "YOUR_HF_USERNAME" # ← CHANGE THIS
+  lora_repo_name: "campus-ai-poster-lora"
+  space_name: "campus-ai-poster-generator"
+  groq:
+    api_key_env: "GROQ_API_KEY" # reads from env variable
+    model: "llama-3.3-70b-versatile"
+
+# ============================================================================
+# TRAINING CONFIGURATION - WITH 10 ANTI-OVERFITTING TECHNIQUES
+# ============================================================================
+training:
+  # Global training settings
+  seed: 42
+  deterministic: true
+  benchmark: false
+
+  # Mixed precision training (Technique 1: Stability)
+  mixed_precision:
+    enabled: true
+    dtype: "bf16" # or "fp16"
+    opt_level: "O2"
+
+  # ==========================================================================
+  # SDXL LORA TRAINING
+  # ==========================================================================
+  sdxl_lora:
+    # LoRA configuration
+    lora:
+      rank: 32
+      alpha: 16
+      dropout: 0.05
+      bias: "none"
+      task_type: "CAUSAL_LM"
+
+    # Optimizer settings
+    optimizer:
+      type: "adamw8bit"
+      learning_rate: 1.0e-4
+      betas: [0.9, 0.999]
+      weight_decay: 0.01
+
+    # Learning rate scheduler (Technique 4: LR Scheduling)
+    scheduler:
+      type: "cosine_with_restarts" # Escapes local minima
+      warmup_steps: 100
+      num_cycles: 3 # 3 restarts across 4 epochs
+      min_lr: 1.0e-6
+
+    # Training hyperparameters
+    batch_size: 1
+    gradient_accumulation_steps: 4
+    effective_batch_size: 4 # batch_size * gradient_accumulation_steps
+    max_grad_norm: 1.0 # Technique 5: Gradient Clipping
+    epochs: 4
+    max_steps: 12800 # 20 epochs × 2560 chunks/epoch
+
+    # Min-SNR-γ Loss Weighting (Technique 6: Balanced Noise-Level Learning)
+    # Prevents model from memorizing easy noise levels and ignoring hard ones.
+    # Forces uniform learning across the entire denoising spectrum → generalization.
+    # Paper: "Efficient Diffusion Training via Min-SNR Weighting Strategy"
+    min_snr_gamma:
+      enabled: true
+      gamma: 5.0 # Clamps max loss weight; 5.0 is the paper-recommended default
+
+    # Model checkpointing (Technique 7: Best Model Selection)
+    checkpointing:
+      enabled: true
+      save_strategy: "epoch" # epoch, steps
+      save_steps: 100
+      save_total_limit: 3
+      save_best_only: true
+      monitor: "val_loss"
+      mode: "min"
+
+    # Validation (Technique 8: Cross-Validation Monitoring)
+    validation:
+      enabled: true
+      eval_strategy: "epoch" # epoch, steps
+      eval_steps: 50
+      eval_accumulation_steps: 1
+      per_device_eval_batch_size: 1
+
+    # Data augmentation (Technique 9: Regularization through augmentation)
+    augmentation:
+      enabled: false # For diffusion models, handled differently
+      techniques:
+        - "random_horizontal_flip"
+        - "color_jitter"
+
+    # Logging
+    logging:
+      steps: 10
+      report_to: "tensorboard"
+      log_level: "info"
+
+    # Noise scheduling (Technique 10: Progressive training)
+    noise_schedule:
+      type: "ddpm"
+      beta_start: 0.0001
+      beta_end: 0.02
+      num_train_timesteps: 1000
+
+  # ==========================================================================
+  # LLAMA LORA TRAINING
+  # ==========================================================================
+  llama_lora:
+    # LoRA configuration
+    lora:
+      rank: 32
+      alpha: 32
+      dropout: 0.05 # Technique 2: Dropout
+      target_modules:
+        - "q_proj"
+        - "k_proj"
+        - "v_proj"
+        - "o_proj"
+        - "gate_proj"
+        - "up_proj"
+        - "down_proj"
+      bias: "none"
+      task_type: "CAUSAL_LM"
+      modules_to_save: null
+
+    # Optimizer settings
+    optimizer:
+      type: "adamw8bit"
+      learning_rate: 2.0e-4
+      betas: [0.9, 0.999]
+      eps: 1.0e-8
+      weight_decay: 0.01 # Technique 3: L2 Regularization
+
+    # Learning rate scheduler (Technique 4: LR Scheduling)
+    scheduler:
+      type: "cosine_with_restarts"
+      warmup_steps: 50
+      warmup_ratio: 0.05
+      num_cycles: 2
+      min_lr: 1.0e-6
+
+    # Training hyperparameters
+    batch_size: 2
+    gradient_accumulation_steps: 4
+    effective_batch_size: 8
+    max_grad_norm: 1.0 # Technique 5: Gradient Clipping
+    epochs: 3
+    max_steps: -1
+
+    # Early stopping (Technique 6: Early Stopping)
+    early_stopping:
+      enabled: true
+      patience: 2
+      min_delta: 0.001
+      monitor: "eval_loss"
+      mode: "min"
+
+    # Model checkpointing (Technique 7: Best Model Selection)
+    checkpointing:
+      enabled: true
+      save_strategy: "epoch"
+      save_steps: 50
+      save_total_limit: 2
+      save_best_only: true
+      monitor: "eval_loss"
+      mode: "min"
+
+    # Validation (Technique 8: Cross-Validation Monitoring)
+    validation:
+      enabled: true
+      eval_strategy: "epoch"
+      eval_steps: 25
+      eval_accumulation_steps: 1
+      per_device_eval_batch_size: 2
+
+    # Layer-wise learning rate decay (Technique 9: Progressive unfreezing)
+    layer_wise_lr:
+      enabled: false
+      decay_rate: 0.9
+
+    # Packing and padding (Technique 10: Efficient batching)
+    data:
+      packing: false
+      max_seq_length: 2048
+      padding: "max_length"
+      truncation: true
+
+    # Logging
+    logging:
+      steps: 5
+      report_to: "tensorboard"
+      log_level: "info"
+      log_model: false
+
+# ============================================================================
+# INFERENCE CONFIGURATION
+# ============================================================================
+inference:
+  # Generation parameters
+  num_variants: 4
+  batch_size: 1
+  max_batch_size: 4
+  timeout_seconds: 60
+
+  # Quality control
+  quality:
+    enable_filters: true
+    min_quality_score: 0.6
+    max_toxicity: 0.7
+
+  # Output settings
+  output:
+    format: "PNG"
+    quality: 95
+    save_metadata: true
+    enable_watermark: true
+    watermark_text: "Generated by CampusGen AI"
+
+  # Templates
+  templates:
+    categories:
+      - "Technical Fest Poster"
+      - "Cultural Event Banner"
+      - "Sports Tournament Poster"
+      - "Club Recruitment Flyer"
+      - "Workshop Announcement"
+      - "Assignment Presentation"
+      - "Promotional Reel"
+      - "Academic Seminar"
+    styles:
+      - "Vibrant and Energetic"
+      - "Elegant and Professional"
+      - "Modern Minimalist"
+      - "Traditional Indian"
+      - "Tech-Futuristic"
+      - "Artistic and Creative"
+
+# ============================================================================
+# RESPONSIBLE AI CONFIGURATION
+# ============================================================================
+responsibility:
+  # Content safety
+  toxicity_filter:
+    enabled: true
+    model: "multilingual"
+    threshold: 0.7
+    block_threshold: 0.85
+
+  # Content watermarking
+  watermark:
+    enabled: true
+    type: "C2PA"
+    text: "AI Generated - CampusGen AI"
+    visible: false
+
+  # Logging and monitoring
+  logging:
+    log_all_generations: true
+    log_blocked_content: true
+    log_path: "logs/inference/safety.log"
+
+  # Rate limiting
+  rate_limit:
+    enabled: false
+    max_requests_per_hour: 100
+    max_requests_per_day: 1000
+
+# ============================================================================
+# WEB APPLICATION CONFIGURATION
+# ============================================================================
+webapp:
+  # Server settings
+  server:
+    host: "0.0.0.0"
+    port: 7860
+    ssl: false
+    share: false
+    debug: false
+
+  # UI settings
+  ui:
+    title: "CampusGen AI - Indian College Poster Generator"
+    description: "Generate stunning posters for college events"
+    theme: "soft"
+    max_file_size_mb: 10
+    allow_flagging: false
+
+  # Session settings
+  session:
+    max_concurrent_users: 10
+    timeout_minutes: 30
+
+  # Example prompts
+  examples:
+    - "IIT Indore Techfest 2026 - Innovation and Robotics"
+    - "Cultural Night - Traditional Dance Celebration"
+    - "Inter-College Basketball Championship"
+    - "Photography Club Recruitment Drive"
+    - "Machine Learning Workshop Series"
+
+# ============================================================================
+# EVALUATION CONFIGURATION
+# ============================================================================
+evaluation:
+  # Metrics to compute
+  metrics:
+    - "fid" # Frechet Inception Distance
+    - "clip_score" # Text-image alignment
+    - "inception_score" # Image quality
+    - "lpips" # Perceptual similarity
+
+  # Thresholds
+  thresholds:
+    fid_max: 50.0 # Lower is better
+    clip_score_min: 0.25 # Higher is better
+    inception_score_min: 3.0 # Higher is better
+
+  # Evaluation settings
+  num_samples: 100
+  batch_size: 10
+  save_comparisons: true
+
+# ============================================================================
+# OPTIMIZATION FLAGS
+# ============================================================================
+optimization:
+  # PyTorch optimizations (tuned for SM120 Blackwell / CUDA 13.x)
+  torch:
+    backends:
+      cudnn:
+        enabled: true
+        benchmark: true
+        deterministic: false
+      cuda:
+        matmul:
+          allow_tf32: true # SM120 TF32 tensor cores
+          allow_bf16_reduced_precision_reduction: true # Native bf16 on Blackwell
+          allow_fp16_reduced_precision_reduction: true
+
+  # Memory optimizations
+  memory:
+    empty_cache_steps: 10
+    max_split_size_mb: 1024 # SM120 memory controller handles larger splits
+
+  # Compile settings — SM120 benefits massively from torch.compile
+  compile:
+    enabled: true
+    mode: "max-autotune" # Best for Blackwell's large SM count
+    fullgraph: false
+
+# ============================================================================
+# MONITORING AND DEBUGGING
+# ============================================================================
+monitoring:
+  # TensorBoard
+  tensorboard:
+    enabled: true
+    log_dir: "logs/tensorboard"
+    update_freq: "batch"
+
+  # Weights & Biases
+  wandb:
+    enabled: false
+    project: "campus-ai"
+    entity: null
+    tags: ["indian-college", "poster-generation"]
+
+  # System monitoring
+  system:
+    log_gpu_stats: true
+    log_memory_stats: true
+    log_interval_steps: 10
+
+# ============================================================================
+# DEPLOYMENT CONFIGURATION
+# ============================================================================
+deployment:
+  # Docker settings
+  docker:
+    base_image: "nvidia/cuda:12.1.0-runtime-ubuntu22.04"
+    expose_port: 7860
+
+  # API settings
+  api:
+    enabled: false
+    host: "0.0.0.0"
+    port: 8000
+    workers: 4
+    timeout: 300
+
+  # Resource limits
+  resources:
+    max_memory_gb: 16
+    max_gpu_memory_gb: 16
+    max_cpu_percent: 80

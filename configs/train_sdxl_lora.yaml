@@ -1,0 +1,84 @@
+job: extension
+config:
+  name: campus_ai_poster_sdxl
+  process:
+    - type: sd_trainer
+      training_folder: /mnt/e/campus-ai/models/sdxl/checkpoints
+      device: cuda:0
+      trigger_word: campus_ai_poster
+      network:
+        type: lora
+        linear: 32
+        linear_alpha: 16
+        dropout: 0.05
+        network_kwargs:
+          lora_plus_lr_ratio: 1.0
+      save:
+        dtype: bf16
+        save_every: 500
+        max_step_saves_to_keep: 5
+      datasets:
+        - folder_path: /mnt/e/campus-ai/data/train
+          caption_ext: txt
+          caption_dropout_rate: 0.1
+          shuffle_tokens: true
+          cache_latents_to_disk: true
+          num_workers: 8
+          resolution:
+            - 1024
+            - 1024
+      train:
+        batch_size: 1
+        steps: 12800
+        gradient_accumulation_steps: 4
+        train_unet: true
+        train_text_encoder: false
+        disable_sampling: true
+        gradient_checkpointing: true
+        noise_scheduler: ddpm
+        optimizer: adamw8bit
+        lr: 0.0001
+        lr_warmup_steps: 100
+        min_snr_gamma: 5.0
+        optimizer_params:
+          weight_decay: 0.01
+          betas:
+            - 0.9
+            - 0.999
+        ema_config:
+          use_ema: true
+          ema_decay: 0.999
+        dtype: bf16
+        lr_scheduler: cosine_with_restarts
+        lr_scheduler_params:
+          T_0: 4267
+          T_mult: 1
+          eta_min: 0.00001
+      model:
+        name_or_path: stabilityai/stable-diffusion-xl-base-1.0
+        is_xl: true
+      sample:
+        sampler: euler_a
+        sample_every: 999999
+        width: 512
+        height: 512
+        prompts:
+          - campus_ai_poster a vibrant technology fest poster with neon colors and bold
+            typography
+          - campus_ai_poster a colorful Diwali celebration poster with golden diyas and
+            rangoli
+          - campus_ai_poster a professional workshop seminar poster with modern minimalist
+            design
+          - campus_ai_poster a dynamic sports tournament poster with action silhouettes
+        neg: ""
+        seed: 42
+        walk_seed: true
+        guidance_scale: 4
+        sample_steps: 28
+      logging:
+        log_every: 10
+        use_wandb: false
+        verbose: true
+  meta:
+    name: campus_ai_v1
+    version: "1.0"

@@ -1,0 +1,32 @@
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+venv/
+env/
+.env
+
+# Data and Models
+data/
+models/
+output/
+dataset/
+
+# Deep Learning Frameworks
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.onnx
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Logs and DBs
+*.db
+*.log
+*.sqlite3

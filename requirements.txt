@@ -1,0 +1,57 @@
+# CampusGen AI - Requirements
+# Python 3.11.14 | CUDA 13.0 (cu130)
+
+# ===== PyTorch (CUDA 13.0) =====
+--extra-index-url https://download.pytorch.org/whl/cu130
+torch
+torchvision
+torchaudio
+
+# ===== Hugging Face Ecosystem =====
+transformers
+diffusers
+datasets
+peft
+trl
+huggingface_hub
+accelerate
+safetensors
+
+# ===== Unsloth (fast LoRA fine-tuning) =====
+unsloth
+
+# ===== Quantization =====
+bitsandbytes
+
+# ===== Evaluation Metrics =====
+torchmetrics
+
+# ===== Toxicity Detection =====
+detoxify
+
+# ===== Web UI =====
+gradio
+
+# ===== Evaluation Dependencies =====
+scipy
+open-clip-torch
+
+# ===== Dataset Downloading =====
+kaggle
+
+# ===== Scraping & Web =====
+selenium
+webdriver-manager
+beautifulsoup4
+
+# ===== Image Processing =====
+opencv-python
+imagehash
+
+# ===== Data & Utilities =====
+numpy
+Pillow
+tqdm
+requests
+pyyaml
+tensorboard
