@@ -1,4 +1,4 @@
-# CampusGen AI — Full Execution Pipeline
+# Campus-AI by CounciL — Full Execution Pipeline
 
 > Step-by-step guide from raw data to live hackathon demo.
 
@@ -71,9 +71,9 @@ Splits into **1000 train / 200 val / 100 test** per theme → `data/train/`, `da
 
 ---
 
-## Phase 3: Fine-Tune LoRA 🎮 GPU (~7-8 hours total)
+## Phase 3: Fine-Tune LoRA 🎮 GPU (~10 hours total)
 
-**Core Training Engine:** `ai-toolkit` featuring LoRA+ optimization. Employs a dual-phase curriculum to circumvent catastrophic forgetting while molding the SDXL 1.0 architecture.
+**Core Training Engine:** `ai-toolkit` featuring LoRA+ optimization. Employs a tri-phase curriculum to circumvent catastrophic forgetting while molding the SDXL 1.0 architecture.
 
 ### 3a. Phase 1: Layout Pass (~3 hours)
 
@@ -102,11 +102,56 @@ python ai-toolkit/run.py configs/train_sdxl_lora_phase2.yaml
 
 Output: Overwrites the `.safetensors` with the high-fidelity weights.
 
+### 3c. Phase 3: Style & Typography Pass (~2.5 hours)
+
+- **Objective:** Final polish for 8 unique typography layout styles and precise color-matching, training the model to leave clean negative space for compositor overlay.
+- **Mechanics:** Drops learning rate to (5e-6). Uses a small, highly curated dataset of typography-heavy posters.
+
+```bash
+# Train Style Pass
+python ai-toolkit/run.py configs/train_sdxl_lora_phase3.yaml
+```
+
+Output: Final `campus_ai_poster_sdxl_phase3.safetensors` ready for deployment.
+
 ---
 
-## Phase 4: Upload to Hugging Face 🖥️ CPU
+## Phase 4: Cross-Genre Dataset & Tuning (Optional Experimental)
 
-### 4a. Install & Login
+**Objective.** To teach the model to blend styles across categories (e.g. tech fest layouts with cultural lighting).
+
+```bash
+python scripts/create_mixed_genre_dataset.py --source data/train --output data/tuning-2 --target-per-cat 3000
+```
+
+Produces ~165,000 blended caption samples for experimental Phase 4 training.
+
+```bash
+# Train Phase 4 Mixed-Genre
+python ai-toolkit/run.py configs/train_sdxl_lora_phase4.yaml
+```
+
+Output: Final `campus_ai_poster_sdxl_phase4.safetensors` ready for deployment.
+
+---
+
+## Phase 5: Local Demo & Testing 🖥️ CPU / 🎮 GPU
+
+Before deploying to the cloud, spin up the 6-tab Gradio UI locally using your RTX 5070 Ti.
+
+```bash
+python deployment/app.py
+```
+
+Open `http://localhost:7860` to verify all 6 tabs (Text→Poster, Reference Image, Image Transform, Inpaint/Edit, HD Upscale, Edit Poster) and LoRA integration are working correctly.
+
+---
+
+## Phase 6: Future Cloud Deployment (Hugging Face)
+
+In the future, when ready to push to production:
+
+### 5a. Install & Login
 
 ```bash
 pip install huggingface-hub[cli]
@@ -114,25 +159,25 @@ huggingface-cli login
 # Paste your token from https://huggingface.co/settings/tokens
 ```
 
-### 4b. Upload LoRA Weights
+### 5b. Upload LoRA Weights
 
 ```bash
 huggingface-cli upload YOUR_USERNAME/campus-ai-poster-sdxl models/sdxl/checkpoints/campus_ai_poster_sdxl/ .
 ```
 
-### 4c. Create & Deploy HF Space
+### 5c. Create & Deploy HF Space
 
 ```bash
 cd deployment
 git init
 huggingface-cli repo create campus-ai-poster-generator --type space --space-sdk gradio
 git remote add space https://huggingface.co/spaces/YOUR_USERNAME/campus-ai-poster-generator
-git add app.py pipelines.py prompt_engine.py requirements.txt README.md
-git commit -m "Deploy CampusGen AI"
+git add app.py pipelines.py prompt_engine.py poster_compositor.py requirements.txt README.md
+git commit -m "Deploy Campus-AI by CounciL"
 git push space main
 ```
 
-### 4d. Add Secrets (on HF website)
+### 5d. Add Secrets (on HF website)
 
 Go to **Space Settings → Variables and Secrets** and add:
 
@@ -143,9 +188,9 @@ Go to **Space Settings → Variables and Secrets** and add:
 
 ---
 
-## Phase 5: Test Live ☁️ Cloud GPU
+## Phase 6: Test Cloud Live ☁️ Cloud GPU
 
-Open `https://huggingface.co/spaces/YOUR_USERNAME/campus-ai-poster-generator` and test all 5 tabs.
+Open `https://huggingface.co/spaces/YOUR_USERNAME/campus-ai-poster-generator` and test all 6 tabs.
 
 ---
 
@@ -175,5 +220,12 @@ create_training_config.py → configs/train_sdxl_lora.yaml
 ai-toolkit/run.py     →  configs/train_sdxl_lora.yaml (Phase 1 Layout)
 ai-toolkit/run.py     →  configs/train_sdxl_lora_phase2.yaml (Phase 2 Detail)
 test_checkpoint.py    →  poster_compositor.py (SDXL Art + PIL Typography)
-deployment/app.py     →  HF Space           (live demo for judges)
+deployment/app.py     →  Local 6-Tab Gradio Server (Primary Test)
+deployment/prompt_engine.py → v3.0 (20 styles, 30 events, 7 lighting, 10 color harmonies)
+deployment/poster_compositor.py → PIL Typography (auto zone detection, 3 layouts)
+huggingface-cli upload → HF Space             (Future Production)
 ```
+
+---
+
+*Campus-AI by CounciL — Built for the Indian campus community*

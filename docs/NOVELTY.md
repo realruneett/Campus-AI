@@ -95,9 +95,17 @@ No existing LoRA trainer combines all five. The synergy between self-adapting LR
 
 ---
 
-## 5. Intelligent Prompt Engineering
+## 5. Intelligent Prompt Engineering (v3.0)
 
-Campus-AI uses **Groq Llama 3.3 70B** (~1,200-1,500 tokens/sec) to transform simple user input into detailed, SDXL-optimized prompts:
+Campus-AI uses a **Prompt Engine v3.0** backed by **Groq Llama 3.3 70B** (~1,200-1,500 tokens/sec) to transform simple user input into detailed, SDXL-optimized prompts:
+
+- **20 visual styles** (Tech-Futuristic, Festive-Vibrant, Neon-Cyberpunk, etc.)
+- **30 event type templates** with category-specific visual vocabularies
+- **7 lighting presets** (dramatic, warm, cool, neon, festive, ethereal, studio)
+- **10 curated color harmony systems** with specific hex codes
+- **Composition strategies** that adapt to aspect ratio (portrait/landscape/square)
+- **Texture layers** and quality boosters with random variation
+- **Event-mood auto-mapping** via `EVENT_MOOD_MAP`
 
 ```
 User:     "tech fest poster for IIT"
@@ -112,19 +120,28 @@ This eliminates the **prompt engineering barrier** — users don't need to learn
 
 ---
 
-## 6. Multi-Modal Generation (4-in-1)
+## 6. Multi-Modal Generation (6-in-1 + Compositor)
 
-Most poster AIs offer only text-to-image. Campus-AI offers four generation modes:
+Most poster AIs offer only text-to-image. Campus-AI offers **six generation modes**:
 
 | Mode | Technology | Use Case |
 |------|-----------|----------|
-| **Text → Poster** | StableDiffusionXLPipeline | Generate from description alone |
+| **Text → Poster** | StableDiffusionXLPipeline + PIL Compositor | Generate from description alone |
 | **Reference Image** | IP-Adapter | Copy style from uploaded poster |
 | **Image → Image** | StableDiffusionXLImg2ImgPipeline | Transform/restyle existing designs |
 | **Inpainting** | StableDiffusionXLInpaintPipeline | Edit specific regions of a poster |
-| **Dynamic Typography** | Smart Zone Detection + PIL | 100% native integration of text without black boxes or clipping |
+| **HD Upscale** | Real-ESRGAN 2×/4× | Print-ready upscaling |
+| **Edit Poster** | PIL Compositor (no AI) | Re-apply/adjust typography on any artwork |
 
-Plus **Real-ESRGAN 2× upscaling** for HD output.
+The **Two-Stage Pipeline** (SDXL artwork + PIL typography) ensures text rendering is pixel-perfect with zero artifacts — a unique approach vs. AI-generated text.
+
+Plus the **Smart Typography Compositor** with:
+
+- **8 layout styles** (Modern, Bold, Elegant, Retro, Minimal, Futuristic, Handwritten, Royal)
+- Auto quiet-zone detection (finds cleanest region for text)
+- Feathered dark scrim for contrast
+- **30+ Premium pre-cached fonts** (Montserrat, Playfair, Bebas Neue, Orbitron, etc.)
+- **1,700+ Google Fonts** with dynamic API fetching on-demand
 
 ---
 
@@ -134,6 +151,7 @@ Plus **Real-ESRGAN 2× upscaling** for HD output.
 |--------|-----------|------------|----------|----------|
 | **Cost** | Free | $10-60/mo | $20/mo | $13/mo |
 | **GPU required** | 12GB consumer | Cloud (their servers) | Cloud | N/A |
+| **Generation modes** | 6 (incl. editor) | 1 | 1 | Templates |
 | **Privacy** | Your data stays local | Uploaded to their servers | Uploaded | Uploaded |
 | **Open source** | ✅ Full pipeline | ❌ Proprietary | ❌ Proprietary | ❌ Proprietary |
 | **Customizable** | ✅ Retrain on your data | ❌ | ❌ | ❌ |
@@ -213,8 +231,9 @@ Remove each technique individually to prove contribution:
 |--------|-----------|-----------|
 | Indian cultural awareness | ❌ Western-biased | ✅ 57 Indian subcategories |
 | Campus event context | ❌ No training data | ✅ 71K+ curated posters |
-| Prompt intelligence | ❌ Manual prompt craft | ✅ Llama 3.3 auto-enhances |
-| Generation modes | Text-to-image only | 4 modes + upscaling |
+| Prompt intelligence | ❌ Manual prompt craft | ✅ Llama 3.3 v3.0 auto-enhances (20 styles, 30 events) |
+| Generation modes | Text-to-image only | 6 modes + typography compositor |
+| Typography | ❌ AI-rendered (artifacts) | ✅ Pixel-perfect PIL compositor |
 | Cost | $10-60/month | Free |
 | Data pipeline | Pre-existing datasets | Custom scrape-to-deploy |
 | Training techniques | Unknown/proprietary | SOTA open research (LoRA+, Min-SNR-γ) |
@@ -222,4 +241,4 @@ Remove each technique individually to prove contribution:
 
 ---
 
-*Campus-AI by Council Strategic Solutions — Built for the Indian campus community*
+*Campus-AI by CounciL — Built for the Indian campus community*

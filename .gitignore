@@ -30,3 +30,8 @@ dataset/
 *.db
 *.log
 *.sqlite3
+
+# Project specific
+tmp/
+get-pip.py
+assets/fonts/

@@ -1,33 +1,36 @@
-# Deployment Requirements – HF Space
+# ══════════════════════════════════════════════════════════════════
+#  Campus-AI — Local Deployment
+#  RTX 5070 Ti (Blackwell sm_120) · CUDA 13.0 · PyTorch 2.10.0
+# ══════════════════════════════════════════════════════════════════
 
-# ===== PyTorch (CUDA) =====
+# ── PyTorch (CUDA 13.0 — stable, latest as of Jan 2026) ──
 --extra-index-url https://download.pytorch.org/whl/cu130
-torch
-torchvision
+torch==2.10.0+cu130
+torchvision==0.25.0+cu130
+torchaudio==2.10.0+cu130
 
-# ===== Core Diffusion =====
-diffusers>=0.30.0
-transformers>=4.40.0
-accelerate
-safetensors
-peft
+# ── Core Diffusion ──
+diffusers>=0.33.0
+transformers>=4.47.0
+accelerate>=1.2.0
+safetensors>=0.4.5
+peft>=0.14.0
+xformers>=0.0.29.post1
 
-# ===== IP-Adapter (reference image style) =====
-ip-adapter
-
-# ===== Upscaling =====
+# ── Upscaling ──
 realesrgan
 basicsr
 gfpgan
 
-# ===== Image Processing =====
-Pillow
-opencv-python-headless
-numpy
+# ── Image Processing ──
+Pillow>=10.4.0
+opencv-python
+numpy>=1.26.0
 
-# ===== Web UI =====
-gradio>=4.40.0
-spaces
+# ── UI ──
+gradio>=4.44.0
 
-# ===== LLM API =====
-requests
+# ── LLM ──
+groq>=0.13.0
+python-dotenv>=1.0.0
+requests>=2.32.0

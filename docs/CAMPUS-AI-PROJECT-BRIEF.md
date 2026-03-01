@@ -2,7 +2,7 @@
 
 ## Universal Event Poster Generator
 
-**Project**: CampusGen AI
+**Project**: Campus-AI by CounciL
 **Type**: AI-powered multi-modal event poster generation
 **Hardware**: Intel Ultra 9 275HX + RTX 5070 Ti (16GB VRAM)
 **Deployment**: Hugging Face Spaces (ZeroGPU — Free Tier)
@@ -16,7 +16,7 @@
 CampusGen AI generates professional event posters for ANY occasion in 10–15 seconds using:
 
 - **Stable Diffusion XL 1.0 (2.6B params)** fine-tuned on **55,000+ diverse poster images** via LoRA
-- **5 Generation Modes**: Text→Poster, Reference Image, Image Transform, Inpainting, HD Upscale
+- **6 Generation Modes**: Text→Poster, Reference Image, Image Transform, Inpainting, HD Upscale, Edit Poster
 - **Llama 3.3 70B** (Groq) for intelligent prompt engineering
 - **Real-ESRGAN** for 4x HD upscaling
 - **IP-Adapter** for reference image style transfer
@@ -29,14 +29,14 @@ CampusGen AI generates professional event posters for ANY occasion in 10–15 se
 | Metric | CampusGen AI | Typical Projects |
 |--------|-------------|------------------|
 | Dataset | **55,000+ images, 55 categories** | 100-500 images, 1-2 categories |
-| Generation Modes | **5 modes** (text, reference, transform, inpaint, upscale) | 1 mode (text only) |
+| Generation Modes | **6 modes** (text, reference, transform, inpaint, upscale, edit) | 1 mode (text only) |
 | Training | LoRA on RTX 5070 Ti (bf16) | Quantized on Colab |
 | Intelligence | **LLM-powered** prompt engineering (10 styles, 19 event types) | Template-based |
 | Speed | 10-15 seconds/poster | 30-60+ seconds |
 | Upscaling | **Real-ESRGAN 4x** HD output | None |
 | Style Transfer | **IP-Adapter** reference image | None |
 | Cost | $0 (smart free tier) | $0-200 |
-| Deployment | Professional 5-tab HF Space | Local/unstable |
+| Deployment | Professional 6-tab HF Space | Local/unstable |
 
 ---
 
@@ -100,7 +100,7 @@ LoRA injects small adapter matrices into attention layers:
 | Train UNet | Yes |
 | Train Text Encoder | No |
 | **Dependencies** | `bitsandbytes` (critical for 8-bit), `diffusers==0.32.1` (for `torchao` compat) |
-| Estimated Time | ~7.5 hours on RTX 5070 Ti |
+| Estimated Time | ~10 hours on RTX 5070 Ti |
 
 ---
 
@@ -151,32 +151,34 @@ LoRA injects small adapter matrices into attention layers:
 
 ---
 
-## DEPLOYMENT APP — 5-Tab Architecture
+## DEPLOYMENT APP — 6-Tab Architecture
 
 ### Files
 
 | File | Purpose |
 |------|---------|
-| `app.py` | 5-tab Gradio UI (~500 lines) |
+| `app.py` | 6-tab Gradio UI with premium dark-gold theme (~1250 lines) |
 | `pipelines.py` | Pipeline manager — lazy loads SDXL/IP-Adapter/ESRGAN (~230 lines) |
-| `prompt_engine.py` | Groq LLM with 10 styles, 19 event types (~250 lines) |
+| `prompt_engine.py` | Groq LLM Prompt Engine v3.0 — 20 styles, 30 event types, 7 lighting presets, 10 color harmonies (~620 lines) |
+| `poster_compositor.py` | PIL Typography Compositor v3.0 — 8 layouts, 30+ fonts, 1,700+ auto-download Google Fonts (~520 lines) |
 | `requirements.txt` | HF Space dependencies |
 | `README.md` | HF Space card |
 
-### 5 Generation Modes
+### 6 Generation Modes
 
 | Tab | What It Does | Key Tech |
 |-----|-------------|----------|
-| ✍️ Text → Poster | Describe event → get poster(s) | SDXL + LoRA + Groq LLM |
-| 🖼️ Reference Image | Upload a poster → copy its style | IP-Adapter |
-| 🔄 Image Transform | Upload → restyle existing poster | Img2Img pipeline |
-| 🖌️ Inpaint / Edit | Draw mask → regenerate region | Inpainting pipeline |
-| 🔍 HD Upscale | 2x/4x upscale any image | Real-ESRGAN |
+| ✦ Text → Poster | Describe event → get poster(s) with typography | SDXL + LoRA + Groq LLM + PIL Compositor |
+| ✦ Reference Image | Upload a poster → copy its style | IP-Adapter |
+| ✦ Image Transform | Upload → restyle existing poster | Img2Img pipeline |
+| ✦ Inpaint / Edit | Draw mask → regenerate region | Inpainting pipeline |
+| ✦ HD Upscale | 2x/4x upscale any image | Real-ESRGAN |
+| ✦ Edit Poster | Upload artwork → apply/adjust typography | PIL Compositor (no AI) |
 
 ### Shared Features
 
 - 7 resolution presets (768×1152, 1024×1024, etc.)
-- 10 visual styles
+- 20 visual styles (via Prompt Engine v3.0)
 - Batch generation (1-4 variants)
 - Seed control
 - LoRA strength slider
@@ -199,7 +201,7 @@ LoRA injects small adapter matrices into attention layers:
 | Quality Filter | 🎮 GPU (Laplacian + color) | ~5 min |
 | Captioning (Florence-2) | 🎮 GPU (float16) | ~6-12h |
 | Dataset Split | 🖥️ CPU (file copy) | ~1 min |
-| LoRA Training | 🎮 GPU (bf16) | ~7.5h |
+| LoRA Training | 🎮 GPU (bf16) | ~10h (Tri-Phase) |
 | Upload to HF | 🖥️ CPU | ~5 min |
 | Live Demo | ☁️ Cloud GPU (ZeroGPU) | Real-time |
 
@@ -216,10 +218,11 @@ python scripts/quality_filter.py             # 🎮 GPU — ~5 min
 python scripts/caption_generator.py          # 🎮 GPU — overnight
 python scripts/split_dataset.py              # 🖥️ CPU — ~1 min
 
-# Phase 3: Training (Dual-Phase)
+# Phase 3: Training (Tri-Phase)
 python scripts/create_training_config.py     # 🖥️ CPU — Setup
-python ai-toolkit/run.py configs/train_sdxl_lora.yaml  # 🎮 GPU — Phase 1 (3h)
-python ai-toolkit/run.py configs/train_sdxl_lora_phase2.yaml  # 🎮 GPU — Phase 2 (4.5h)
+python ai-toolkit/run.py configs/train_sdxl_lora.yaml  # 🎮 GPU — Phase 1 (Layout - 3h)
+python ai-toolkit/run.py configs/train_sdxl_lora_phase2.yaml  # 🎮 GPU — Phase 2 (Perfection - 4.5h)
+python ai-toolkit/run.py configs/train_sdxl_lora_phase3.yaml  # 🎮 GPU — Phase 3 (Style/Typography - 2.5h)
 
 # Phase 4: Deploy
 huggingface-cli upload YOUR_USERNAME/campus-ai-poster-sdxl models/sdxl/checkpoints/campus_ai_poster_sdxl/ .
@@ -261,7 +264,7 @@ campus-ai/
 ├── docs/
 │   ├── CAMPUS-AI-PROJECT-BRIEF.md   # This file
 │   ├── README.md                    # Project overview
-│   ├── SETUP.md                     # Setup guide
+│   ├── NOVELTY.md                   # Novelty & unique value proposition
 │   └── PIPELINE.md                  # Execution pipeline
 └── requirements.txt                 # Local dependencies
 ```
@@ -272,18 +275,21 @@ campus-ai/
 
 ### What Judges Will See
 
-1. **Live 5-tab demo** on Hugging Face (not just slides)
+1. **Live 6-tab demo** on Hugging Face (not just slides)
 2. **55,000+ image dataset** (10-100x larger than competitors)
-3. **5 generation modes** (competitors have 1)
-4. **GPU-accelerated pipeline** (professional engineering)
-5. **$0 deployment** (smart architecture)
+3. **6 generation modes** (competitors have 1)
+4. **Two-stage pipeline** (SDXL artwork + pixel-perfect PIL typography)
+5. **Prompt Engine v3.0** (20 styles, 30 events, 7 lighting presets)
+6. **GPU-accelerated pipeline** (professional engineering)
+7. **$0 deployment** (smart architecture)
 
 ### Key Talking Points
 
 - "Trained on 55,000+ event posters across 55 categories — 10x larger than typical projects"
-- "5 generation modes: text, reference image, transform, inpaint, upscale"
-- "80 million trainable parameters via LoRA on 2.6 billion parameter SDXL model"
-- "GPU-accelerated pipeline: quality filter, captioning, and training all on GPU"
+- "6 generation modes: text→poster, reference image, transform, inpaint, upscale, poster editor"
+- "Two-stage pipeline: SDXL generates artwork, PIL compositor adds pixel-perfect typography"
+- "Prompt Engine v3.0 with 20 visual styles, 30 event types, mood auto-mapping"
+- "8 typography styles, 30+ premium pre-cached fonts, and 1,700+ Google Fonts loaded on-demand."
 - "Zero cost — entire project runs on free tier services"
 
 ### Tough Questions
@@ -292,7 +298,7 @@ campus-ai/
 A: "That's the power of LoRA — we get the quality of a 2.6B model while only training 80M adapter parameters. The base model already knows how to generate images; our LoRA teaches it our specific poster style. Bigger ≠ better — efficiency is the innovation."
 
 **Q: "How is this different from MidJourney?"**
-A: "MidJourney is generic. Ours is specialized — trained on 55,000 Indian event posters. It understands rangoli patterns, tech fest aesthetics, and college event culture. Plus, 5 generation modes including reference image style transfer and inpainting."
+A: "MidJourney is generic. Ours is specialized — trained on 55,000 Indian event posters. It understands rangoli patterns, tech fest aesthetics, and college event culture. Plus, 6 generation modes including reference image style transfer, inpainting, and a dedicated poster editor."
 
 **Q: "Can judges try it live?"**
 A: "Absolutely — here's the HF Space link. Pick any event, any style. Generate in 15 seconds."
@@ -306,11 +312,11 @@ A: "Absolutely — here's the HF Space link. Pick any event, any style. Generate
 | Dataset | 55K+ captioned images | ✅ Complete |
 | Training | Loss <0.10, coherent samples | ⏳ Pending |
 | Generation | <20 seconds, professional quality | ⏳ Pending |
-| Deployment | Live 5-tab HF Space | ⏳ Pending |
-| Demo | All 5 tabs working flawlessly | ⏳ Pending |
+| Deployment | Live 6-tab HF Space | ⏳ Pending |
+| Demo | All 6 tabs working flawlessly | ⏳ Pending |
 
 ---
 
-**Version**: 4.1
-**Last Updated**: February 22, 2026
-**Status**: Dataset captioned ✅ → Training LoRA on RTX 5070 Ti 🔄
+**Version**: 5.0
+**Last Updated**: February 27, 2026
+**Status**: Dataset captioned ✅ → Training LoRA on RTX 5070 Ti 🔄 → v3.0 Prompt Engine & UI complete ✅

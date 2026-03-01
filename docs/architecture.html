@@ -141,6 +141,7 @@
       line-height: 1.1;
       background: linear-gradient(135deg, #fff 0%, #4f8ff7 40%, #8b5cf6 60%, #ec4899 100%);
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
       margin-bottom: 12px;
     }
@@ -660,6 +661,7 @@
       font-family: 'JetBrains Mono', monospace;
       background: linear-gradient(135deg, var(--blue), var(--purple));
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
@@ -796,7 +798,7 @@
         <div class="phase-number">02</div>
         <div>
           <div class="phase-title">Training Pipeline</div>
-          <div class="phase-desc">Fine-tune Flux.1-dev with LoRA adapters</div>
+          <div class="phase-desc">Fine-tune SDXL 1.0 (2.6B) with LoRA adapters</div>
         </div>
       </div>
 
@@ -820,12 +822,12 @@
         <!-- Center: Core model -->
         <div class="train-core">
           <span class="card-icon">🧠</span>
-          <div class="card-name">Flux.1-dev</div>
-          <div class="card-detail" style="margin-top:8px;">12 billion parameter<br>transformer diffusion model</div>
-          <div class="lora-badge">+ LoRA Adapter (Rank 16, α=16)</div>
+          <div class="card-name">SDXL 1.0</div>
+          <div class="card-detail" style="margin-top:8px;">2.6 billion parameter<br>diffusion model</div>
+          <div class="lora-badge">+ LoRA Adapter (Rank 32)</div>
           <div class="train-specs">
             <div class="spec">
-              <div class="spec-val">40M</div>
+              <div class="spec-val">10.5M</div>
               <div class="spec-label">Trainable Params</div>
             </div>
             <div class="spec">
@@ -902,14 +904,14 @@
           <div class="card">
             <span class="card-icon">🦙</span>
             <div class="card-name">Groq Llama 3.3 70B</div>
-            <div class="card-detail">Enhances plain text into detailed Flux-optimized prompts</div>
+            <div class="card-detail">Enhances plain text into detailed SDXL-optimized prompts</div>
             <div class="card-tag" style="background:rgba(245,158,11,0.1); color:var(--orange);">~200ms API</div>
           </div>
         </div>
 
         <!-- Center: engine -->
         <div class="inf-engine">
-          <div class="engine-label">Flux.1-dev + LoRA Inference Engine</div>
+          <div class="engine-label">SDXL 1.0 + LoRA Inference Engine</div>
           <div class="modes">
             <div class="mode">
               <div class="mode-icon">✍️</div>
@@ -962,7 +964,7 @@
 
       <!-- Deploy chips -->
       <div class="deploy">
-        <div class="deploy-chip chip-local">🖥️ Local — RTX 5070 Ti (12GB VRAM)</div>
+        <div class="deploy-chip chip-local">🖥️ Local — RTX 5070 Ti (16GB VRAM)</div>
         <div class="deploy-chip chip-cloud">☁️ Cloud — HF Spaces + ZeroGPU</div>
       </div>
     </div>
@@ -970,27 +972,27 @@
     <!-- ═══ STATS ═══ -->
     <div class="stats-bar">
       <div class="stat">
-        <div class="stat-value">71K+</div>
+        <div class="stat-value">55K+</div>
         <div class="stat-label">Training Images</div>
       </div>
       <div class="stat">
-        <div class="stat-value">57</div>
+        <div class="stat-value">55</div>
         <div class="stat-label">Subcategories</div>
       </div>
       <div class="stat">
-        <div class="stat-value">12B</div>
+        <div class="stat-value">2.6B</div>
         <div class="stat-label">Base Params</div>
       </div>
       <div class="stat">
-        <div class="stat-value">40M</div>
+        <div class="stat-value">10.5M</div>
         <div class="stat-label">LoRA Params</div>
       </div>
       <div class="stat">
-        <div class="stat-value">SM120</div>
+        <div class="stat-value">RTX5070Ti</div>
         <div class="stat-label">GPU Arch</div>
       </div>
       <div class="stat">
-        <div class="stat-value">~46h</div>
+        <div class="stat-value">~7.5h</div>
         <div class="stat-label">Training Time</div>
       </div>
     </div>

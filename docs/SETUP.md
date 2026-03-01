@@ -1,10 +1,10 @@
-# CampusGen AI – Setup Guide
+# Campus-AI by CounciL – Setup Guide
 
 ## Prerequisites
 
 - **OS**: Windows 10/11 or Ubuntu 22.04+
 - **Python**: 3.11+
-- **GPU**: NVIDIA GPU with 12GB+ VRAM (RTX 5070 Ti used for development)
+- **GPU**: NVIDIA GPU with 12GB VRAM (RTX 5070 Ti used for development)
 - **CUDA**: 12.1+ with matching drivers
 - **Disk**: 100GB+ free space
 - **Chrome**: Latest version (for Pinterest scraping)
@@ -12,9 +12,12 @@
 ## 1. Environment Setup
 
 ```bash
-# Create conda environment
-conda create -n campus-ai python=3.11 -y
-conda activate campus-ai
+# Create and activate virtual environment
+python -m venv venv
+# On Windows:
+venv\Scripts\activate
+# On WSL/Linux:
+source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
@@ -37,13 +40,13 @@ deployment:
 
 ### API Keys
 
-| Service | Where to Get | Config Key |
-|---------|-------------|------------|
-| Kaggle | kaggle.com/settings | `api_keys.kaggle` |
-| Unsplash | unsplash.com/developers | `api_keys.unsplash` |
-| Pexels | pexels.com/api | `api_keys.pexels` |
-| Groq | console.groq.com | Environment: `GROQ_API_KEY` |
-| HuggingFace | huggingface.co/settings/tokens | CLI: `huggingface-cli login` |
+| Service      | Where to Get                   | Config Key                          |
+| ------------ | ------------------------------ | ----------------------------------- |
+| Kaggle       | kaggle.com/settings            | `api_keys.kaggle`                   |
+| Unsplash     | unsplash.com/developers        | `api_keys.unsplash`                 |
+| Pexels       | pexels.com/api                 | `api_keys.pexels`                   |
+| Groq         | console.groq.com               | Environment: `GROQ_API_KEY`         |
+| HuggingFace  | huggingface.co/settings/tokens | CLI: `huggingface-cli login`        |
 
 ## 3. Data Pipeline
 
@@ -91,7 +94,7 @@ Fixed counts: **1000 train / 200 val / 100 test** per theme.
 
 **Output**: `data/train/`, `data/val/`, `data/test/`
 
-## 4. Training 🎮 GPU (~7.5 hours total)
+## 4. Training 🎮 GPU (~15 hours total)
 
 ### Install ai-toolkit
 
@@ -127,6 +130,30 @@ python run.py ../configs/train_sdxl_lora_phase2.yaml
 cd ..
 ```
 
+### Phase 3: Style & Typography Pass (~2.5 hours)
+
+Locks in the 8 typography layout styles and precise negative space using `train_sdxl_lora_phase3.yaml` (5e-6 LR) on the exact 6,448-image tuning dataset.
+
+```bash
+cd ai-toolkit
+python run.py ../configs/train_sdxl_lora_phase3.yaml
+cd ..
+```
+
+### Phase 4: Mixed-Genre Fine-Tuning (~3.5+ hours)
+
+Generates 148,800 paired samples balancing 62 categories evenly with 8 modes of caption dropout, then gently trains at `2e-6` LR to blend styles seamlessly.
+
+```bash
+# 1. Generate the massive mixed-genre dataset
+python scripts/create_mixed_genre_dataset.py --source data/train --output data/tuning-2 --target-per-cat 3000
+
+# 2. Run the tuning pass
+cd ai-toolkit
+python run.py ../configs/train_sdxl_lora_phase4.yaml
+cd ..
+```
+
 ### Monitor
 
 ```bash
@@ -143,7 +170,19 @@ tensorboard --logdir logs/tensorboard
 python scripts/test_checkpoint.py
 ```
 
-## 5. Deployment 🖥️ CPU → ☁️ Cloud
+## 5. Local Testing 🖥️ CPU / 🎮 GPU
+
+To test the application on your own machine using the trained LoRA:
+
+```bash
+python deployment/app.py
+```
+
+Then open `http://127.0.0.1:7860` in your web browser to access the 6-tab Gradio UI.
+
+## 6. Deploy to Cloud (Future) ☁️ Cloud
+
+Once local testing is complete, you can deploy to Hugging Face Spaces.
 
 ### Upload LoRA to Hugging Face
 
@@ -159,8 +198,8 @@ cd deployment
 git init
 huggingface-cli repo create campus-ai-poster-generator --type space --space-sdk gradio
 git remote add space https://huggingface.co/spaces/YOUR_USERNAME/campus-ai-poster-generator
-git add app.py pipelines.py prompt_engine.py requirements.txt README.md
-git commit -m "Deploy CampusGen AI"
+git add app.py pipelines.py prompt_engine.py poster_compositor.py requirements.txt README.md
+git commit -m "Deploy Campus-AI by CounciL"
 git push space main
 ```
 
@@ -168,31 +207,33 @@ git push space main
 
 In Space Settings → Variables and Secrets:
 
-| Secret Name | Value |
-|-------------|-------|
-| `HF_USERNAME` | your HF username |
-| `GROQ_API_KEY` | your Groq API key |
+| Secret Name    | Value                |
+| -------------- | -------------------- |
+| `HF_USERNAME`  | your HF username     |
+| `GROQ_API_KEY` | your Groq API key    |
 
 ## GPU Usage Summary
 
-| Step | Device | Time |
-|------|--------|------|
-| Scraping | 🖥️ CPU | ~6-12h (network-bound) |
-| Quality Filter | 🎮 GPU | ~5 min |
-| Captioning | 🎮 GPU | ~6-12h |
-| Split | 🖥️ CPU | ~1 min |
-| Training (Phase 1) | 🎮 GPU | ~3h |
-| Training (Phase 2) | 🎮 GPU | ~4.5h |
-| Upload | 🖥️ CPU | ~5 min |
-| Live Demo | ☁️ Cloud GPU | HF ZeroGPU |
+| Step               | Device            | Time                    |
+| ------------------ | ----------------- | ----------------------- |
+| Scraping           | 🖥️ CPU            | ~6-12h (network-bound)  |
+| Quality Filter     | 🎮 GPU            | ~5 min                  |
+| Captioning         | 🎮 GPU            | ~6-12h                  |
+| Split              | 🖥️ CPU            | ~1 min                  |
+| Training (Phase 1) | 🎮 GPU            | ~3h                     |
+| Training (Phase 2) | 🎮 GPU            | ~4.5h                   |
+| Training (Phase 3) | 🎮 GPU            | ~2.5h                   |
+| Training (Phase 4) | 🎮 GPU            | ~3.5h                   |
+| Upload             | 🖥️ CPU            | ~5 min                  |
+| Live Demo          | ☁️ Cloud GPU      | HF ZeroGPU              |
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| CUDA OOM during training | Set `batch_size: 1` and `gradient_accumulation_steps: 4` in config |
-| Pinterest blocking | Increase sleep time, use VPN, or try alt sources |
-| Blurry outputs | Increase `num_inference_steps` to 40 |
-| Slow cold start on HF | Send Space link 24h before demo to warm it up |
-| Groq rate limit | Create multiple accounts, rotate API keys |
-| GPU not detected | Verify CUDA install: `python -c "import torch; print(torch.cuda.is_available())"` |
+| Issue                    | Solution                                                                           |
+| ------------------------ | ---------------------------------------------------------------------------------- |
+| CUDA OOM during training | Set `batch_size: 1` and `gradient_accumulation_steps: 4` in config                 |
+| Pinterest blocking       | Increase sleep time, use VPN, or try alt sources                                   |
+| Blurry outputs           | Increase `num_inference_steps` to 40                                               |
+| Slow cold start on HF    | Send Space link 24h before demo to warm it up                                      |
+| Groq rate limit          | Create multiple accounts, rotate API keys                                          |
+| GPU not detected         | Verify CUDA install: `python -c "import torch; print(torch.cuda.is_available())"`  |

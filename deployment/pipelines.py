@@ -27,9 +27,9 @@ logger = logging.getLogger(__name__)
 # Configuration
 # ─────────────────────────────────────────────────────────────────────────────
 HF_USERNAME = os.environ.get("HF_USERNAME", "YOUR_USERNAME")
-LORA_REPO = f"{HF_USERNAME}/campus-ai-poster-lora"
-LORA_FILENAME = "campus_ai_poster_lora.safetensors"
-BASE_MODEL = "black-forest-labs/FLUX.1-dev"
+LORA_REPO = "models/sdxl/checkpoints/campus_ai_poster_sdxl_phase4"  # Local path
+LORA_FILENAME = "campus_ai_poster_sdxl_phase4.safetensors"
+BASE_MODEL = "stabilityai/stable-diffusion-xl-base-1.0"
 
 # IP-Adapter for Flux
 IP_ADAPTER_REPO = "h94/IP-Adapter"
@@ -72,12 +72,17 @@ class PipelineManager:
 
         self._unload_all()
 
-        from diffusers import FluxPipeline
+        from diffusers import StableDiffusionXLPipeline, DPMSolverMultistepScheduler
 
-        logger.info("Loading Flux.1-dev text-to-image pipeline...")
-        self._text2img = FluxPipeline.from_pretrained(
+        logger.info("Loading SDXL text-to-image pipeline...")
+        self._text2img = StableDiffusionXLPipeline.from_pretrained(
             BASE_MODEL,
-            torch_dtype=torch.bfloat16,
+            torch_dtype=torch.float16,
+            variant="fp16",
+            use_safetensors=True,
+        )
+        self._text2img.scheduler = DPMSolverMultistepScheduler.from_config(
+            self._text2img.scheduler.config, use_karras_sigmas=True
         )
         self._text2img.enable_model_cpu_offload()
         self._load_lora(self._text2img)
@@ -103,12 +108,17 @@ class PipelineManager:
 
         self._unload_all()
 
-        from diffusers import FluxImg2ImgPipeline
+        from diffusers import StableDiffusionXLImg2ImgPipeline, DPMSolverMultistepScheduler
 
-        logger.info("Loading Flux.1-dev img2img pipeline...")
-        self._img2img = FluxImg2ImgPipeline.from_pretrained(
+        logger.info("Loading SDXL img2img pipeline...")
+        self._img2img = StableDiffusionXLImg2ImgPipeline.from_pretrained(
             BASE_MODEL,
-            torch_dtype=torch.bfloat16,
+            torch_dtype=torch.float16,
+            variant="fp16",
+            use_safetensors=True,
+        )
+        self._img2img.scheduler = DPMSolverMultistepScheduler.from_config(
+            self._img2img.scheduler.config, use_karras_sigmas=True
         )
         self._img2img.enable_model_cpu_offload()
         self._load_lora(self._img2img)
@@ -133,12 +143,17 @@ class PipelineManager:
 
         self._unload_all()
 
-        from diffusers import FluxInpaintPipeline
+        from diffusers import StableDiffusionXLInpaintPipeline, DPMSolverMultistepScheduler
 
-        logger.info("Loading Flux.1-dev inpainting pipeline...")
-        self._inpaint = FluxInpaintPipeline.from_pretrained(
+        logger.info("Loading SDXL inpainting pipeline...")
+        self._inpaint = StableDiffusionXLInpaintPipeline.from_pretrained(
             BASE_MODEL,
-            torch_dtype=torch.bfloat16,
+            torch_dtype=torch.float16,
+            variant="fp16",
+            use_safetensors=True,
+        )
+        self._inpaint.scheduler = DPMSolverMultistepScheduler.from_config(
+            self._inpaint.scheduler.config, use_karras_sigmas=True
         )
         self._inpaint.enable_model_cpu_offload()
         self._load_lora(self._inpaint)
@@ -171,6 +186,14 @@ class PipelineManager:
                 subfolder=IP_ADAPTER_SUBFOLDER,
                 weight_name="ip-adapter-plus_sdxl_vit-h.safetensors",
             )
+            
+            # Critical fix: enable_model_cpu_offload() doesn't always cast the newly injected 
+            # IP-Adapter image_encoder to the correct device/dtype automatically in diffusers.
+            # We must explicitly cast it to match the base model to prevent 
+            # "Input type and weight type should be the same" RuntimeError.
+            if hasattr(pipe, "image_encoder") and pipe.image_encoder is not None:
+                pipe.image_encoder = pipe.image_encoder.to(device=pipe.device, dtype=torch.float16)
+
             self._ip_adapter_loaded = True
             logger.info("IP-Adapter loaded successfully.")
         except Exception as e:
@@ -236,7 +259,7 @@ class PipelineManager:
         if upscaler == "pillow_fallback":
             # Simple Pillow resize as fallback
             new_size = (image.width * scale, image.height * scale)
-            return image.resize(new_size, Image.LANCZOS)
+            return image.resize(new_size, Image.Resampling.LANCZOS)
 
         # Real-ESRGAN
         img_np = np.array(image)

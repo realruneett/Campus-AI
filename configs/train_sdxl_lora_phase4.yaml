@@ -1,0 +1,87 @@
+job: extension
+config:
+  name: campus_ai_poster_sdxl_phase4
+  process:
+    - type: sd_trainer
+      training_folder: /mnt/e/campus-ai/models/sdxl/checkpoints
+      device: cuda:0
+      trigger_word: campus_ai_poster
+      network:
+        type: lora
+        linear: 32
+        linear_alpha: 16
+        dropout: 0.1
+        network_kwargs:
+          lora_plus_lr_ratio: 1.0
+        # ==========================================================
+        # PHASE 4: RESUME FROM PHASE 3 WEIGHTS
+        # Large-scale mixed-genre tuning (148,800 samples dataset)
+        # ==========================================================
+        pretrained_lora_path: /mnt/e/campus-ai/models/sdxl/checkpoints/campus_ai_poster_sdxl_phase3/campus_ai_poster_sdxl_phase3.safetensors
+      save:
+        dtype: bf16
+        save_every: 500
+        max_step_saves_to_keep: 5
+      datasets:
+        - folder_path: /mnt/e/campus-ai/data/tuning-2
+          shuffle_tokens: true
+          cache_latents_to_disk: true
+          # Note: We must enable dropout for the diverse captions
+          caption_dropout_rate: 0.1
+          num_workers: 8
+          resolution: [1024, 1024]
+      train:
+        batch_size: 1
+        # Dataset is 148,800 images. At batch 1, accum 4, 1 epoch = EXACTLY 37,200 steps.
+        # We will do exactly 1 full epoch to safely introduce cross-genre blending
+        # without destroying the perfect typography learned in Phase 3.
+        steps: 37200
+        gradient_accumulation_steps: 4
+        train_unet: true
+        train_text_encoder: false
+        disable_sampling: true
+        gradient_checkpointing: true
+        noise_scheduler: ddpm
+        optimizer: adamw8bit
+        # ==========================================================
+        # PHASE 4: ULTRA-LOW LEARNING RATE
+        # Preserve Phase 3 typography while blending genres safely
+        # ==========================================================
+        lr: 2.0e-6
+        lr_warmup_steps: 100
+        min_snr_gamma: 5.0
+        optimizer_params:
+          weight_decay: 0.01
+          betas:
+            - 0.9
+            - 0.999
+        ema_config:
+          use_ema: true
+          ema_decay: 0.999
+        dtype: bf16
+        lr_scheduler: cosine
+      model:
+        name_or_path: stabilityai/stable-diffusion-xl-base-1.0
+        is_xl: true
+      sample:
+        sampler: euler_a
+        sample_every: 999999
+        width: 1024
+        height: 1024
+        prompts:
+          - campus_ai_poster a vibrant technology fest poster with neon colors and bold typography
+          - campus_ai_poster a colorful Diwali celebration poster with golden diyas and rangoli
+          - campus_ai_poster a professional workshop seminar poster with modern minimalist design
+          - campus_ai_poster a dynamic sports tournament poster with action silhouettes
+        neg: ""
+        seed: 42
+        walk_seed: true
+        guidance_scale: 4
+        sample_steps: 28
+      logging:
+        log_every: 10
+        use_wandb: false
+        verbose: true
+  meta:
+    name: campus_ai_v4_mixed_genre
+    version: "4.0"
